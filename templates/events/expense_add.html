@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}Add Expense - {{ event.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .form-section {
+        border-bottom: 2px solid #f1f3f5;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .form-section:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    .form-section h5 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    .form-section h5 i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    .tip-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .tip-card .card-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 12px 12px 0 0;
+    }
+    .tip-item {
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    .tip-item:last-child {
+        border-bottom: none;
+    }
+    .tip-item i {
+        color: #28a745;
+        margin-right: 0.75rem;
+        font-size: 0.9rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+    .form-label i {
+        color: #667eea;
+        margin-right: 0.3rem;
+    }
+    .btn-add {
+        transition: transform 0.15s ease;
+    }
+    .btn-add:hover {
+        transform: translateY(-2px);
+    }
+    .event-name-badge {
+        background: #f8f9fa;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    @media (max-width: 768px) {
+        .form-section {
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .page-header {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .page-header .btn {
+            margin-top: 0.75rem;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+                <h1 style="font-weight: 700; color: #2c3e50;">
+                    <i class="fas fa-plus-circle" style="color: #28a745;"></i> Add Expense
+                    <span class="event-name-badge ms-2">
+                        <i class="fas fa-calendar-check me-1"></i> {{ event.name }}
+                    </span>
+                </h1>
+                <a href="{% url 'budget_view' event.pk %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Budget
+                </a>
+            </div>
+            <hr style="border-color: #e9ecef; opacity: 0.5;">
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-section">
+                            <h5><i class="fas fa-tag"></i> Expense Details</h5>
+                            <div class="mb-3">
+                                <label for="category" class="form-label fw-semibold"><i class="fas fa-folder"></i>Category <span class="text-danger">*</span></label>
+                                <select name="category" class="form-select" id="category" required>
+                                    <option value="venue">🏢 Venue</option>
+                                    <option value="catering">🍽️ Catering</option>
+                                    <option value="entertainment">🎭 Entertainment</option>
+                                    <option value="decor">🎨 Decorations</option>
+                                    <option value="transport">🚗 Transportation</option>
+                                    <option value="staff">👥 Staff</option>
+                                    <option value="marketing">📢 Marketing</option>
+                                    <option value="other">📌 Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label fw-semibold"><i class="fas fa-align-left"></i>Description <span class="text-danger">*</span></label>
+                                <input type="text" name="description" class="form-control" id="description" placeholder="e.g. Catering for 50 guests" required>
+                            </div>
+                            <div class="mb-0">
+                                <label for="amount" class="form-label fw-semibold"><i class="fas fa-dollar-sign"></i>Amount ($) <span class="text-danger">*</span></label>
+                                <input type="number" name="amount" class="form-control" id="amount" step="0.01" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5><i class="fas fa-sticky-note"></i> Additional Information</h5>
+                            <div class="mb-0">
+                                <label for="notes" class="form-label fw-semibold"><i class="fas fa-pencil-alt"></i>Notes</label>
+                                <textarea name="notes" class="form-control" id="notes" rows="2" placeholder="Any additional details or receipt references"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-4">
+                            <a href="{% url 'budget_view' event.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-add">
+                                <i class="fas fa-plus-circle"></i> Add Expense
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card tip-card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Quick Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Categorize expenses
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Add clear descriptions
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Track every expense
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Keep receipts in notes
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3 detail-card" style="border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-radius: 12px;">
+                <div class="card-header bg-dark text-white" style="border: none; border-radius: 12px 12px 0 0; padding: 0.75rem 1.25rem;">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Budget Info</h5>
+                </div>
+                <div class="card-body" style="padding: 1.25rem;">
+                    <p class="mb-1"><strong>Total Budget:</strong> <span class="text-success">${{ event.budget|floatformat:2 }}</span></p>
+                    <p class="mb-0"><strong>Event:</strong> {{ event.name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

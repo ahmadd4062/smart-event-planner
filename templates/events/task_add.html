@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Add Task - {{ event.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .form-section {
+        border-bottom: 2px solid #f1f3f5;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .form-section:last-of-type {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    .form-section h5 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    .form-section h5 i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    .tip-card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .tip-card .card-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 12px 12px 0 0;
+    }
+    .tip-item {
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f1f3f5;
+    }
+    .tip-item:last-child {
+        border-bottom: none;
+    }
+    .tip-item i {
+        color: #28a745;
+        margin-right: 0.75rem;
+        font-size: 0.9rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+    .form-label i {
+        color: #667eea;
+        margin-right: 0.3rem;
+    }
+    .btn-add {
+        transition: transform 0.15s ease;
+    }
+    .btn-add:hover {
+        transform: translateY(-2px);
+    }
+    .event-name-badge {
+        background: #f8f9fa;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    @media (max-width: 768px) {
+        .form-section {
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .page-header {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .page-header .btn {
+            margin-top: 0.75rem;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+                <h1 style="font-weight: 700; color: #2c3e50;">
+                    <i class="fas fa-tasks" style="color: #f39c12;"></i> Add Task to Timeline
+                    <span class="event-name-badge ms-2">
+                        <i class="fas fa-calendar-check me-1"></i> {{ event.name }}
+                    </span>
+                </h1>
+                <a href="{% url 'timeline_view' event.pk %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Timeline
+                </a>
+            </div>
+            <hr style="border-color: #e9ecef; opacity: 0.5;">
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-section">
+                            <h5><i class="fas fa-info-circle"></i> Task Details</h5>
+                            <div class="mb-3">
+                                <label for="title" class="form-label fw-semibold"><i class="fas fa-tag"></i>Task Title <span class="text-danger">*</span></label>
+                                <input type="text" name="title" class="form-control" id="title" placeholder="e.g. Book Venue" required autofocus>
+                            </div>
+                            <div class="mb-0">
+                                <label for="description" class="form-label fw-semibold"><i class="fas fa-align-left"></i>Description</label>
+                                <textarea name="description" class="form-control" id="description" rows="2" placeholder="Brief description of the task"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5><i class="fas fa-clock"></i> Date & Time</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="start_date" class="form-label fw-semibold"><i class="fas fa-play"></i>Start Date & Time <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" name="start_date" class="form-control" id="start_date" required>
+                                </div>
+                                <div class="col-md-6 mb-0">
+                                    <label for="end_date" class="form-label fw-semibold"><i class="fas fa-stop"></i>End Date & Time <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" name="end_date" class="form-control" id="end_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h5><i class="fas fa-sliders-h"></i> Status</h5>
+                            <div class="mb-0">
+                                <label for="status" class="form-label fw-semibold"><i class="fas fa-flag"></i>Status</label>
+                                <select name="status" class="form-select" id="status">
+                                    <option value="not_started">⏳ Not Started</option>
+                                    <option value="in_progress">⚡ In Progress</option>
+                                    <option value="completed">✅ Completed</option>
+                                    <option value="delayed">⚠️ Delayed</option>
+                                    <option value="cancelled">❌ Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap gap-2 justify-content-end mt-4">
+                            <a href="{% url 'timeline_view' event.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-add">
+                                <i class="fas fa-plus-circle"></i> Add Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card tip-card">
+                <div class="card-header text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Quick Tips</h5>
+                </div>
+                <div class="card-body">
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Add tasks in order
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Set realistic dates
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Update status regularly
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i> Break large tasks into smaller ones
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3" style="border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-radius: 12px;">
+                <div class="card-header bg-dark text-white" style="border: none; border-radius: 12px 12px 0 0; padding: 0.75rem 1.25rem;">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Event Info</h5>
+                </div>
+                <div class="card-body" style="padding: 1.25rem;">
+                    <p class="mb-1"><strong>Event:</strong> {{ event.name }}</p>
+                    <p class="mb-0"><strong>Date:</strong> {{ event.event_date|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

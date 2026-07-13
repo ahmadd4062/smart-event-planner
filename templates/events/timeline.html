@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Timeline - {{ event.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        border-bottom: 2px solid #f1f3f5;
+        padding-bottom: 0.75rem;
+    }
+    .page-header h1 {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .stat-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
+    }
+    .stat-card .card-body {
+        padding: 1rem 1.25rem;
+    }
+    .stat-card .stat-label {
+        font-weight: 500;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        opacity: 0.85;
+    }
+    .stat-card .stat-number {
+        font-weight: 700;
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    .stat-card .stat-number-dark {
+        color: #2c3e50;
+    }
+    .stat-total {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+    }
+    .stat-not-started {
+        background: linear-gradient(135deg, #6c757d, #495057);
+        color: white;
+    }
+    .stat-in-progress {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    .stat-completed {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    .stat-delayed {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+    }
+    .stat-cancelled {
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        color: white;
+    }
+    .task-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        transition: all 0.2s ease;
+        border-left: 4px solid #6c757d;
+    }
+    .task-card:hover {
+        box-shadow: 0 6px 25px rgba(0,0,0,0.10);
+        transform: translateX(4px);
+    }
+    .task-card.status-not-started { border-left-color: #6c757d; }
+    .task-card.status-in-progress { border-left-color: #4facfe; }
+    .task-card.status-completed { border-left-color: #28a745; }
+    .task-card.status-delayed { border-left-color: #dc3545; }
+    .task-card.status-cancelled { border-left-color: #2c3e50; }
+    .task-card .card-body {
+        padding: 1rem 1.25rem;
+    }
+    .task-card .task-title {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.05rem;
+    }
+    .task-card .task-meta {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    .task-card .task-actions .btn {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+        transition: transform 0.15s ease;
+    }
+    .task-card .task-actions .btn:hover {
+        transform: scale(1.1);
+    }
+    .empty-state {
+        padding: 4rem 0;
+    }
+    .empty-state i {
+        font-size: 3.5rem;
+        color: #dee2e6;
+    }
+    .empty-state h4 {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 1rem;
+    }
+    .action-btn {
+        transition: transform 0.15s ease;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .page-header .btn-group {
+            margin-top: 0.75rem;
+        }
+        .page-header .btn {
+            flex: 1;
+        }
+        .stat-card .stat-number {
+            font-size: 1.5rem;
+        }
+        .task-card .task-actions .btn-group {
+            flex-wrap: wrap;
+        }
+    }
+    @media (max-width: 576px) {
+        .stat-card .stat-number {
+            font-size: 1.2rem;
+        }
+        .task-card .task-title {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+                <h1>
+                    <i class="fas fa-clock" style="color: #667eea;"></i> Timeline - {{ event.name }}
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'task_add' event.pk %}" class="btn btn-primary action-btn">
+                        <i class="fas fa-plus-circle"></i> Add Task
+                    </a>
+                    <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline-secondary action-btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Summary -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-total text-center">
+                <div class="card-body">
+                    <div class="stat-label text-muted">Total</div>
+                    <div class="stat-number stat-number-dark">{{ tasks|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-not-started text-center">
+                <div class="card-body">
+                    <div class="stat-label">Not Started</div>
+                    <div class="stat-number">{{ status_counts.not_started }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-in-progress text-center">
+                <div class="card-body">
+                    <div class="stat-label">In Progress</div>
+                    <div class="stat-number">{{ status_counts.in_progress }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-completed text-center">
+                <div class="card-body">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-number">{{ status_counts.completed }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-delayed text-center">
+                <div class="card-body">
+                    <div class="stat-label">Delayed</div>
+                    <div class="stat-number">{{ status_counts.delayed }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-cancelled text-center">
+                <div class="card-body">
+                    <div class="stat-label">Cancelled</div>
+                    <div class="stat-number">{{ status_counts.cancelled }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Timeline -->
+    <div class="row">
+        <div class="col-12">
+            {% if tasks %}
+                <div class="timeline">
+                    {% for task in tasks %}
+                        <div class="card task-card status-{{ task.status }} mb-3">
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap justify-content-between align-items-start">
+                                    <div class="flex-grow-1 me-2">
+                                        <div class="d-flex flex-wrap align-items-center gap-2">
+                                            <span class="badge 
+                                                {% if task.status == 'completed' %}bg-success
+                                                {% elif task.status == 'in_progress' %}bg-info
+                                                {% elif task.status == 'delayed' %}bg-danger
+                                                {% elif task.status == 'cancelled' %}bg-dark
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ task.get_status_display }}
+                                            </span>
+                                            <span class="task-title">{{ task.title }}</span>
+                                        </div>
+                                        {% if task.description %}
+                                            <p class="card-text text-muted mt-1" style="font-size: 0.95rem;">{{ task.description }}</p>
+                                        {% endif %}
+                                        <p class="task-meta mb-0">
+                                            <i class="fas fa-calendar-alt me-1"></i> 
+                                            {{ task.start_date|date:"M d, Y H:i" }} - 
+                                            {{ task.end_date|date:"M d, Y H:i" }}
+                                        </p>
+                                    </div>
+                                    <div class="task-actions mt-2 mt-sm-0">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'task_status_update' task.pk 'not_started' %}" class="btn btn-outline-secondary" title="Not Started">
+                                                <i class="fas fa-circle"></i>
+                                            </a>
+                                            <a href="{% url 'task_status_update' task.pk 'in_progress' %}" class="btn btn-outline-info" title="In Progress">
+                                                <i class="fas fa-spinner"></i>
+                                            </a>
+                                            <a href="{% url 'task_status_update' task.pk 'completed' %}" class="btn btn-outline-success" title="Completed">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            <a href="{% url 'task_status_update' task.pk 'delayed' %}" class="btn btn-outline-danger" title="Delayed">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </a>
+                                            <a href="{% url 'task_edit' task.pk %}" class="btn btn-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center empty-state">
+                    <i class="fas fa-clock"></i>
+                    <h4>No tasks in timeline</h4>
+                    <p class="text-muted">Add tasks to build your event timeline</p>
+                    <a href="{% url 'task_add' event.pk %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Add Task
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

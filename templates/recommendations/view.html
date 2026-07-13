@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}AI Recommendations - Smart Event Planner{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        border-bottom: 2px solid #f1f3f5;
+        padding-bottom: 0.75rem;
+    }
+    .page-header h1 {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .recommendation-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        transition: all 0.2s ease;
+        height: 100%;
+        overflow: hidden;
+    }
+    .recommendation-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+    }
+    .recommendation-card .card-body {
+        padding: 1.25rem;
+    }
+    .recommendation-card .card-title {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+    }
+    .recommendation-card .card-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    .recommendation-card .detail-item {
+        padding: 0.3rem 0;
+        border-bottom: 1px solid #f1f3f5;
+        font-size: 0.9rem;
+    }
+    .recommendation-card .detail-item:last-child {
+        border-bottom: none;
+    }
+    .recommendation-card .detail-item strong {
+        color: #2c3e50;
+        display: inline-block;
+        min-width: 70px;
+    }
+    .section-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f1f3f5;
+    }
+    .section-title i {
+        margin-right: 0.5rem;
+    }
+    .generate-card {
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        transition: all 0.2s ease;
+    }
+    .generate-card:hover {
+        background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    }
+    .generate-card .btn-generate {
+        padding: 0.6rem 2rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: transform 0.2s ease;
+    }
+    .generate-card .btn-generate:hover {
+        transform: translateY(-2px);
+    }
+    .empty-state {
+        padding: 2rem 0;
+        text-align: center;
+    }
+    .empty-state i {
+        font-size: 2.5rem;
+        color: #dee2e6;
+        margin-bottom: 0.5rem;
+    }
+    .empty-state h6 {
+        color: #6c757d;
+    }
+    .action-btn {
+        transition: transform 0.15s ease;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .page-header .btn {
+            margin-top: 0.75rem;
+            width: 100%;
+        }
+        .generate-card .d-flex {
+            flex-direction: column;
+            text-align: center;
+        }
+        .generate-card .btn-generate {
+            margin-top: 0.75rem;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+                <h1>
+                    <i class="fas fa-robot" style="color: #667eea;"></i> AI Recommendations for {{ event.name }}
+                </h1>
+                <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline-secondary action-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Event
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Generate Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card generate-card">
+                <div class="card-body">
+                    <form method="POST" action="{% url 'generate_recommendations' event.pk %}">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-robot text-primary me-2" style="font-size: 1.2rem;"></i>
+                                <span style="font-weight: 500; color: #2c3e50;">Get AI-powered recommendations for venues, catering, and entertainment</span>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-generate">
+                                <i class="fas fa-sync-alt me-2"></i> Generate Recommendations
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Venue Recommendations -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="section-title"><i class="fas fa-map-marker-alt" style="color: #667eea;"></i>Venue Recommendations</h4>
+            <div class="row g-3">
+                {% if venues %}
+                    {% for venue in venues %}
+                        <div class="col-md-4">
+                            <div class="card recommendation-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ venue.name }}</h5>
+                                    <p class="card-text">{{ venue.description|truncatechars:100 }}</p>
+                                    <div class="detail-item"><strong>Cost:</strong> ${{ venue.cost|floatformat:2 }}</div>
+                                    <div class="detail-item"><strong>Rating:</strong> ⭐ {{ venue.rating }}/5</div>
+                                    {% if venue.address %}
+                                        <div class="detail-item"><strong>Address:</strong> {{ venue.address }}</div>
+                                    {% endif %}
+                                    {% if venue.contact %}
+                                        <div class="detail-item"><strong>Contact:</strong> {{ venue.contact }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h6>No venue recommendations yet</h6>
+                            <p class="text-muted small">Click "Generate Recommendations" above</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Catering Recommendations -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="section-title"><i class="fas fa-utensils" style="color: #28a745;"></i>Catering Recommendations</h4>
+            <div class="row g-3">
+                {% if caterings %}
+                    {% for catering in caterings %}
+                        <div class="col-md-4">
+                            <div class="card recommendation-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ catering.name }}</h5>
+                                    <p class="card-text">{{ catering.description|truncatechars:100 }}</p>
+                                    <div class="detail-item"><strong>Cost:</strong> ${{ catering.cost|floatformat:2 }}</div>
+                                    <div class="detail-item"><strong>Rating:</strong> ⭐ {{ catering.rating }}/5</div>
+                                    {% if catering.cuisine_type %}
+                                        <div class="detail-item"><strong>Cuisine:</strong> {{ catering.cuisine_type }}</div>
+                                    {% endif %}
+                                    {% if catering.contact %}
+                                        <div class="detail-item"><strong>Contact:</strong> {{ catering.contact }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="fas fa-utensils"></i>
+                            <h6>No catering recommendations yet</h6>
+                            <p class="text-muted small">Click "Generate Recommendations" above</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Entertainment Recommendations -->
+    <div class="row">
+        <div class="col-12">
+            <h4 class="section-title"><i class="fas fa-music" style="color: #f39c12;"></i>Entertainment Recommendations</h4>
+            <div class="row g-3">
+                {% if entertainments %}
+                    {% for entertainment in entertainments %}
+                        <div class="col-md-4">
+                            <div class="card recommendation-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ entertainment.name }}</h5>
+                                    <p class="card-text">{{ entertainment.description|truncatechars:100 }}</p>
+                                    <div class="detail-item"><strong>Cost:</strong> ${{ entertainment.cost|floatformat:2 }}</div>
+                                    <div class="detail-item"><strong>Rating:</strong> ⭐ {{ entertainment.rating }}/5</div>
+                                    {% if entertainment.type %}
+                                        <div class="detail-item"><strong>Type:</strong> {{ entertainment.type }}</div>
+                                    {% endif %}
+                                    {% if entertainment.contact %}
+                                        <div class="detail-item"><strong>Contact:</strong> {{ entertainment.contact }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="fas fa-music"></i>
+                            <h6>No entertainment recommendations yet</h6>
+                            <p class="text-muted small">Click "Generate Recommendations" above</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

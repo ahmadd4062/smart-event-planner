@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% block title %}Guests - {{ event.name }}{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        border-bottom: 2px solid #f1f3f5;
+        padding-bottom: 0.75rem;
+    }
+    .page-header h1 {
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .stat-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
+    }
+    .stat-card .card-body {
+        padding: 1rem 1.25rem;
+    }
+    .stat-card .stat-label {
+        font-weight: 500;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        opacity: 0.85;
+    }
+    .stat-card .stat-number {
+        font-weight: 700;
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    .stat-card .stat-number-dark {
+        color: #2c3e50;
+    }
+    .stat-total {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+    }
+    .stat-confirmed {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    .stat-pending {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+    }
+    .stat-declined {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+    }
+    .stat-maybe {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+    }
+    .table-hover tbody tr {
+        transition: background-color 0.15s ease;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .table th {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    .table td {
+        vertical-align: middle;
+        padding: 0.75rem;
+    }
+    .table .btn-group .btn {
+        padding: 0.2rem 0.5rem;
+        font-size: 0.75rem;
+        transition: transform 0.15s ease;
+    }
+    .table .btn-group .btn:hover {
+        transform: scale(1.1);
+    }
+    .action-btn {
+        transition: transform 0.15s ease;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    .empty-state {
+        padding: 4rem 0;
+    }
+    .empty-state i {
+        font-size: 3.5rem;
+        color: #dee2e6;
+    }
+    .empty-state h4 {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 1rem;
+    }
+    .guest-name {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch !important;
+        }
+        .page-header .btn-group {
+            margin-top: 0.75rem;
+        }
+        .page-header .btn {
+            flex: 1;
+        }
+        .stat-card .stat-number {
+            font-size: 1.5rem;
+        }
+        .table td, .table th {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+        }
+        .table .btn-group .btn {
+            padding: 0.15rem 0.4rem;
+            font-size: 0.7rem;
+        }
+    }
+    @media (max-width: 576px) {
+        .stat-card .stat-number {
+            font-size: 1.2rem;
+        }
+        .table td, .table th {
+            font-size: 0.75rem;
+            padding: 0.4rem;
+        }
+        .table .btn-group .btn {
+            padding: 0.1rem 0.3rem;
+            font-size: 0.65rem;
+        }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+                <h1>
+                    <i class="fas fa-users" style="color: #667eea;"></i> Guests - {{ event.name }}
+                </h1>
+                <div class="btn-group">
+                    <a href="{% url 'guest_add' event.pk %}" class="btn btn-primary action-btn">
+                        <i class="fas fa-user-plus"></i> Add Guest
+                    </a>
+                    <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline-secondary action-btn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- RSVP Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-total text-center">
+                <div class="card-body">
+                    <div class="stat-label text-muted">Total</div>
+                    <div class="stat-number stat-number-dark">{{ stats.total }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-confirmed text-center">
+                <div class="card-body">
+                    <div class="stat-label">Confirmed</div>
+                    <div class="stat-number">{{ stats.confirmed }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-pending text-center">
+                <div class="card-body">
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-number">{{ stats.pending }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-declined text-center">
+                <div class="card-body">
+                    <div class="stat-label">Declined</div>
+                    <div class="stat-number">{{ stats.declined }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card stat-card stat-maybe text-center">
+                <div class="card-body">
+                    <div class="stat-label">Maybe</div>
+                    <div class="stat-number">{{ stats.maybe }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Guest List -->
+    <div class="row">
+        <div class="col-12">
+            {% if guests %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>RSVP Status</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for guest in guests %}
+                            <tr>
+                                <td><span class="guest-name">{{ guest.name }}</span></td>
+                                <td>{{ guest.email|default:"—" }}</td>
+                                <td>{{ guest.phone|default:"—" }}</td>
+                                <td>
+                                    <span class="badge {% if guest.rsvp_status == 'confirmed' %}bg-success{% elif guest.rsvp_status == 'pending' %}bg-warning{% elif guest.rsvp_status == 'declined' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {{ guest.get_rsvp_status_display }}
+                                    </span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'guest_edit' guest.pk %}" class="btn btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'guest_delete' guest.pk %}" class="btn btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center empty-state">
+                    <i class="fas fa-users"></i>
+                    <h4>No guests added yet</h4>
+                    <p class="text-muted">Add guests to manage RSVPs</p>
+                    <a href="{% url 'guest_add' event.pk %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Add Guest
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
