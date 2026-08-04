@@ -4,228 +4,433 @@
 
 {% block content %}
 <style>
-    .dashboard-card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border: none;
-        border-radius: 12px;
+    .dashboard-wrapper {
+        background: linear-gradient(145deg, #f7faff 0%, #eef3ff 50%, #e6edfe 100%);
+        padding: 1.5rem 0 3rem 0;
+        border-radius: 0 0 40px 40px;
+        margin-top: -0.5rem;
+        min-height: 70vh;
+        position: relative;
         overflow: hidden;
     }
-    
-    .dashboard-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important;
+
+    .dashboard-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -10%;
+        right: -5%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.07) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
     }
-    
+
+    .dashboard-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: -10%;
+        left: -5%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(118, 75, 162, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .dashboard-container {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ===== SIMPLE POP-UP ANIMATION ===== */
     .stat-card {
         border: none;
-        border-radius: 12px;
+        border-radius: 20px;
         overflow: hidden;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                    box-shadow 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        z-index: 1;
     }
-    
+
+    /* JUST POP UP - no background changes */
+    .stat-card:hover {
+        transform: scale(1.05) translateY(-8px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+        z-index: 10;
+    }
+
+    /* Keep everything else exactly the same */
     .stat-card .card-body {
-        padding: 1.5rem 1.25rem;
+        padding: 1.75rem 1.5rem;
+        position: relative;
+        z-index: 2;
     }
-    
+
     .stat-card .stat-label {
-        font-weight: 500;
-        letter-spacing: 0.5px;
+        font-weight: 600;
+        letter-spacing: 0.6px;
         font-size: 0.8rem;
-        opacity: 0.9;
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.95);
+        text-transform: uppercase;
+        position: relative;
+        z-index: 2;
     }
-    
+
     .stat-card .stat-number {
-        font-weight: 700;
-        font-size: 2.8rem;
-        line-height: 1.2;
+        font-weight: 800;
+        font-size: 3.2rem;
+        line-height: 1.1;
         color: #ffffff;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        position: relative;
+        z-index: 2;
     }
-    
+
+    .stat-card .badge-light-opacity {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-weight: 500;
+        padding: 0.3rem 0.9rem;
+        border-radius: 40px;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat-card .stat-sub {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 400;
+        background: rgba(0, 0, 0, 0.06);
+        padding: 0.2rem 0.8rem;
+        border-radius: 40px;
+        display: inline-block;
+        backdrop-filter: blur(2px);
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Gradient backgrounds - UNCHANGED on hover */
     .gradient-primary {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
     }
-    
+
     .gradient-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: linear-gradient(135deg, #28a745 0%, #1db87c 100%);
+        box-shadow: 0 8px 24px rgba(40, 167, 69, 0.2);
     }
-    
+
     .gradient-info {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        background: linear-gradient(135deg, #4facfe 0%, #00c6fb 100%);
+        box-shadow: 0 8px 24px rgba(79, 172, 254, 0.2);
     }
-    
-    .stat-card .badge-light-opacity {
-        background-color: rgba(255, 255, 255, 0.25);
-        color: white;
-        font-weight: 400;
-        padding: 0.25rem 0.75rem;
+
+    /* Quick actions card */
+    .quick-actions-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    box-shadow 0.3s ease;
     }
-    
-    .stat-card .stat-sub {
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.75);
-        font-weight: 400;
+
+    .quick-actions-card:hover {
+        transform: scale(1.02) translateY(-4px);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.12);
     }
-    
+
+    .quick-actions-card .card-header {
+        background: rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(4px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+        padding: 1rem 1.5rem;
+    }
+
     .quick-action-btn {
-        padding: 0.6rem 1.5rem;
-        font-weight: 500;
-        border-radius: 8px;
-        transition: transform 0.15s ease;
+        padding: 0.7rem 1.8rem;
+        font-weight: 600;
+        border-radius: 50px;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    box-shadow 0.3s ease;
+        border: none;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
     }
-    
+
     .quick-action-btn:hover {
-        transform: translateY(-2px);
+        transform: scale(1.05) translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
-    
+
     .quick-action-btn i {
-        margin-right: 0.5rem;
-    }
-    
-    .welcome-heading {
-        font-weight: 700;
-        color: #2c3e50;
-    }
-    
-    .welcome-text {
         font-size: 1.1rem;
-        color: #6c757d;
     }
-    
+
+    .btn-primary-soft {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-primary-soft:hover {
+        background: linear-gradient(135deg, #5a67d8, #6a3f8a);
+        color: white;
+        box-shadow: 0 8px 28px rgba(102, 126, 234, 0.35);
+    }
+
+    .btn-success-soft {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.2);
+    }
+
+    .btn-success-soft:hover {
+        background: linear-gradient(135deg, #218838, #1aa179);
+        color: white;
+        box-shadow: 0 8px 28px rgba(40, 167, 69, 0.3);
+    }
+
+    /* Welcome heading */
+    .welcome-heading {
+        font-weight: 800;
+        color: #1a2332;
+        letter-spacing: -0.02em;
+        font-size: 2.2rem;
+    }
+
+    .welcome-heading i {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .welcome-text {
+        font-size: 1.15rem;
+        color: #3a4a5e;
+        font-weight: 400;
+    }
+
+    .welcome-text strong {
+        color: #1a2332;
+        font-weight: 600;
+    }
+
+    .badge-online {
+        background: rgba(40, 167, 69, 0.12);
+        color: #28a745;
+        font-weight: 500;
+        padding: 0.35rem 1rem;
+        border-radius: 40px;
+        border: 1px solid rgba(40, 167, 69, 0.15);
+        backdrop-filter: blur(4px);
+        font-size: 0.8rem;
+    }
+
     .section-divider {
-        border-color: #e9ecef;
-        opacity: 0.5;
-        margin: 1rem 0;
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.05), transparent);
+        margin: 0.8rem 0 1.2rem 0;
+        opacity: 1;
     }
-    
+
+    .date-badge {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(4px);
+        padding: 0.3rem 1.2rem;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        color: #2c3e50;
+        font-weight: 400;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Links - no color changes */
+    .text-decoration-none {
+        color: inherit !important;
+        display: block;
+    }
+
+    /* Responsive tweaks */
     @media (max-width: 768px) {
-        .stat-card .stat-number {
-            font-size: 2.2rem;
+        .dashboard-wrapper {
+            padding: 1rem 0 2rem 0;
+            border-radius: 0 0 30px 30px;
         }
-        
-        .quick-action-btn {
-            width: 100%;
-            text-align: center;
-        }
-        
-        .welcome-text {
-            font-size: 0.95rem;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .stat-card .stat-number {
+
+        .welcome-heading {
             font-size: 1.8rem;
         }
-        
+
+        .welcome-text {
+            font-size: 1rem;
+        }
+
+        .stat-card .stat-number {
+            font-size: 2.4rem;
+        }
+
         .stat-card .card-body {
-            padding: 1rem;
+            padding: 1.25rem 1rem;
+        }
+
+        .quick-action-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 0.65rem 1.2rem;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.03) translateY(-5px) !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .welcome-heading {
+            font-size: 1.5rem;
+        }
+
+        .stat-card .stat-number {
+            font-size: 2rem;
+        }
+
+        .stat-card .card-body {
+            padding: 1rem 0.9rem;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+        }
+
+        .date-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.8rem;
+            margin-top: 0.3rem;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.02) translateY(-3px) !important;
         }
     }
 </style>
 
-<div class="container mt-4">
-    <!-- Welcome Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex align-items-center justify-content-between flex-wrap">
-                <div>
-                    <h1 class="mb-1 welcome-heading">
-                        <i class="fas fa-chart-pie me-2" style="color: #667eea;"></i>Dashboard
-                    </h1>
-                    <p class="lead welcome-text">
-                        Welcome back, <strong>{{ user.username }}</strong>! 
-                        <span class="badge bg-success ms-2" style="font-weight: 400;">
-                            <i class="fas fa-circle" style="font-size: 8px; vertical-align: middle;"></i> Online
+<div class="dashboard-wrapper">
+    <div class="container dashboard-container">
+        <!-- Welcome Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div>
+                        <h1 class="mb-1 welcome-heading">
+                            <i class="fas fa-chart-pie me-2"></i>Dashboard
+                        </h1>
+                        <p class="lead welcome-text">
+                            Welcome back, <strong>{{ user.username }}</strong>!
+                            <span class="badge-online ms-2">
+                                <i class="fas fa-circle" style="font-size: 8px; vertical-align: middle; color: #28a745;"></i> Online
+                            </span>
+                        </p>
+                    </div>
+                    <div class="mt-2 mt-sm-0">
+                        <span class="date-badge">
+                            <i class="far fa-calendar-alt me-1"></i> {{ now|date:"l, F j, Y" }}
                         </span>
-                    </p>
+                    </div>
                 </div>
-                <div class="mt-2 mt-sm-0">
-                    <span class="text-muted" style="font-size: 0.9rem;">
-                        <i class="far fa-calendar-alt me-1"></i> {{ now|date:"l, F j, Y" }}
-                    </span>
-                </div>
+                <hr class="section-divider">
             </div>
-            <hr class="section-divider">
         </div>
-    </div>
-    
-    <!-- Stats Widgets -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <a href="{% url 'event_list' %}" class="text-decoration-none">
-                <div class="card stat-card gradient-primary dashboard-card">
+
+        <!-- Stats Widgets -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <a href="{% url 'event_list' %}" class="text-decoration-none">
+                    <div class="card stat-card gradient-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="stat-label">
+                                    <i class="fas fa-calendar-alt me-1"></i> TOTAL EVENTS
+                                </h6>
+                                <span class="badge-light-opacity badge">All</span>
+                            </div>
+                            <h2 class="stat-number mb-0 mt-2">{{ user.events.count }}</h2>
+                            <div class="mt-2">
+                                <small class="stat-sub">
+                                    <i class="fas fa-arrow-up me-1"></i> Events created
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card gradient-success">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <h6 class="stat-label">
-                                <i class="fas fa-calendar-alt me-1"></i> TOTAL EVENTS
+                                <i class="fas fa-calendar-check me-1"></i> UPCOMING EVENTS
                             </h6>
-                            <span class="badge-light-opacity badge">All</span>
+                            <span class="badge-light-opacity badge">Soon</span>
                         </div>
-                        <h2 class="stat-number mb-0 mt-2">{{ user.events.count }}</h2>
+                        <h2 class="stat-number mb-0 mt-2">{{ user.events.all|length }}</h2>
                         <div class="mt-2">
                             <small class="stat-sub">
-                                <i class="fas fa-arrow-up me-1"></i> Events created
+                                <i class="fas fa-clock me-1"></i> Upcoming events
                             </small>
                         </div>
                     </div>
                 </div>
-            </a>
-        </div>
-        <div class="col-md-4">
-            <div class="card stat-card gradient-success dashboard-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="stat-label">
-                            <i class="fas fa-calendar-check me-1"></i> UPCOMING EVENTS
-                        </h6>
-                        <span class="badge-light-opacity badge">Soon</span>
-                    </div>
-                    <h2 class="stat-number mb-0 mt-2">{{ user.events.all|length }}</h2>
-                    <div class="mt-2">
-                        <small class="stat-sub">
-                            <i class="fas fa-clock me-1"></i> Upcoming events
-                        </small>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card gradient-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="stat-label">
+                                <i class="fas fa-users me-1"></i> TOTAL GUESTS
+                            </h6>
+                            <span class="badge-light-opacity badge">Total</span>
+                        </div>
+                        <h2 class="stat-number mb-0 mt-2">{{ user.events.all|sum_guests }}</h2>
+                        <div class="mt-2">
+                            <small class="stat-sub">
+                                <i class="fas fa-user-plus me-1"></i> Guests invited
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card stat-card gradient-info dashboard-card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="stat-label">
-                            <i class="fas fa-users me-1"></i> TOTAL GUESTS
-                        </h6>
-                        <span class="badge-light-opacity badge">Total</span>
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card quick-actions-card">
+                    <div class="card-header bg-transparent border-0 pt-3">
+                        <h5 class="mb-0" style="font-weight: 700; color: #1a2332;">
+                            <i class="fas fa-bolt me-2" style="color: #f39c12;"></i> Quick Actions
+                        </h5>
                     </div>
-                    <h2 class="stat-number mb-0 mt-2">{{ user.events.all|sum_guests }}</h2>
-                    <div class="mt-2">
-                        <small class="stat-sub">
-                            <i class="fas fa-user-plus me-1"></i> Guests invited
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm dashboard-card">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h5 class="mb-0" style="font-weight: 600; color: #2c3e50;">
-                        <i class="fas fa-bolt me-2" style="color: #f39c12;"></i> Quick Actions
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="{% url 'event_create' %}" class="btn btn-primary quick-action-btn">
-                            <i class="fas fa-plus-circle"></i> Create Event
-                        </a>
-                        <a href="{% url 'event_list' %}" class="btn btn-success quick-action-btn">
-                            <i class="fas fa-list"></i> View All Events
-                        </a>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="{% url 'event_create' %}" class="btn btn-primary-soft quick-action-btn">
+                                <i class="fas fa-plus-circle"></i> Create Event
+                            </a>
+                            <a href="{% url 'event_list' %}" class="btn btn-success-soft quick-action-btn">
+                                <i class="fas fa-list"></i> View All Events
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
